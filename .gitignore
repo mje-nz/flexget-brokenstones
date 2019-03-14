@@ -1,0 +1,4 @@
+*.log
+*.bak
+*.sqlite
+.config-lock

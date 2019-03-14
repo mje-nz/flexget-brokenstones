@@ -1,0 +1,13 @@
+web_server: yes
+
+schedules:
+  - tasks: '*'
+    interval:
+      minutes: 60
+
+tasks:
+  check_brokenstones_freeleech:
+    rss:
+      url: (brokenstones RSS URL)
+      other_fields: [comments]
+    brokenstones:
