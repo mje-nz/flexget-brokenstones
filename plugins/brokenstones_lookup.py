@@ -1,4 +1,11 @@
-"""BrokenStones plugin for FlexGet."""
+"""BrokenStones plugin for FlexGet.
+
+I don't know how to use FlexGet, so this is pretty rough.
+
+Author: Matthew Edwards
+Date: March 2019
+"""
+
 from __future__ import unicode_literals, division, absolute_import
 from builtins import *
 from future.standard_library import install_aliases
@@ -65,7 +72,8 @@ class BrokenStonesLookup(object):
         'additionalProperties': False,
     }
 
-    def on_task_metainfo(self, task, config):
+    # Should really use on_task_metainfo, but this way remember_rejected goes first
+    def on_task_filter(self, task, config):
         for entry in task.entries:
             log.info('Checking {} ({})'.format(entry['title'], entry['url']))
             r = get_comments(entry)

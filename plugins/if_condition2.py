@@ -76,7 +76,8 @@ class FilterIf(object):
                         continue
                     # Simple entry action (accept, reject or fail) was specified as a string
                     for entry in passed_entries:
-                        entry_actions[action](entry, 'Matched requirement: %s' % requirement)
+                        # TODO: Make this an option
+                        entry_actions[action](entry, 'Matched requirement: %s' % requirement, remember=True)
                 else:
                     # Other plugins were specified to run on this entry
                     fake_task = Task(task.manager, task.name, config=action, options=task.options)
