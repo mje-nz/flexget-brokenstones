@@ -83,7 +83,7 @@ class BrokenStonesLookup(object):
                 if r.url.endswith('login.php'):
                     raise plugin.PluginError('Login appeared to succeed but next request failed')
             if 'log.php' in r.url:
-                entry.reject('torrent removed')
+                entry.reject('torrent removed', remember=True)
             html = r.content
             soup = BeautifulSoup(html, 'lxml')
             expected_id = get_id(entry['url'])
@@ -119,7 +119,10 @@ class BrokenStonesLookup(object):
                              entry['content_size'], entry['snatches'], entry['seeders'], entry['leechers']))
                     break
             else:
-                log.error('Could not match download link in page')
+                # This happens when a new release is taken down.  It might come back (e.g.,
+                # if there was a problem and then the problem is fixed), so don't remember
+                # this rejection.
+                entry.reject('could not match download link in page')
 
 
 @event('plugin.register')
