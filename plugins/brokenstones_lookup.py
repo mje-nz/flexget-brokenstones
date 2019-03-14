@@ -18,29 +18,29 @@ from bs4 import BeautifulSoup
 
 from flexget import plugin
 from flexget.event import event
-from flexget.utils.requests import TimedLimiter, RequestException
-from flexget.utils.requests import Session as RequestSession
+from flexget.utils.requests import RequestException
 
 
-BASE_URL = 'brokenstones.club'
 log = logging.getLogger('brokenstones_lookup')
-requests = RequestSession()
-requests.add_domain_limiter(TimedLimiter(BASE_URL, '2 seconds'))
 
 
-def login(username, password):
+def login(requests, username, password):
+    log.info('Logging in to BrokenStones...')
     data = {
         'username': username,
         'password': password,
         'keeplogged': '1'
     }
-    login_url = 'https://' + BASE_URL + '/login.php'
-    r = requests.post(login_url, data=data)
-    if r.url == login_url:
-        raise plugin.PluginError('Failed to log in')
+    try:
+        login_url = 'https://brokenstones.club/login.php'
+        r = requests.post(login_url, data=data)
+        if r.url == login_url:
+            raise plugin.PluginError('Failed to log in to BrokenStones')
+    except RequestException as e:
+        raise plugin.PluginError('Error logging in to BrokenStones: {}'.format(e))
 
 
-def get_comments(entry):
+def get_comments(requests, entry):
     try:
         return requests.get(entry['comments'])
     except RequestException as e:
@@ -75,15 +75,19 @@ class BrokenStonesLookup(object):
     # Should really use on_task_metainfo, but this way remember_rejected goes first
     def on_task_filter(self, task, config):
         for entry in task.entries:
+            if not task.requests.cookies:
+                login(task.requests, config['username'], config['password'])
+
             log.info('Checking {} ({})'.format(entry['title'], entry['url']))
-            r = get_comments(entry)
+            r = get_comments(task.requests, entry)
             if r.url.endswith('login.php'):
-                login(config['username'], config['password'])
-                r = get_comments(entry)
+                login(task.requests, config['username'], config['password'])
+                r = get_comments(task.requests, entry)
                 if r.url.endswith('login.php'):
                     raise plugin.PluginError('Login appeared to succeed but next request failed')
             if 'log.php' in r.url:
                 entry.reject('torrent removed', remember=True)
+
             html = r.content
             soup = BeautifulSoup(html, 'lxml')
             expected_id = get_id(entry['url'])

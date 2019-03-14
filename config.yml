@@ -7,6 +7,8 @@ schedules:
 
 tasks:
   check_brokenstones_freeleech:
+    domain_delay:
+      brokenstones.club: 10 seconds
     rss:
       url: (brokenstones RSS URL)
       # Need to keep comments field from RSS for brokenstones_lookup
