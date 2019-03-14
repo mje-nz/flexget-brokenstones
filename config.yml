@@ -10,4 +10,10 @@ tasks:
     rss:
       url: (brokenstones RSS URL)
       other_fields: [comments]
-    brokenstones:
+    brokenstones_lookup:
+      username: (username)
+      password: (password)
+    if:
+      - 'not freeleech': reject
+      - 'content_size >= 5000000000': reject
+      - 'freeleech and content_size < 5000000000': accept

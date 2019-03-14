@@ -16,15 +16,15 @@ from flexget.utils.requests import Session as RequestSession
 
 
 BASE_URL = 'brokenstones.club'
-log = logging.getLogger('brokenstones')
+log = logging.getLogger('brokenstones_lookup')
 requests = RequestSession()
 requests.add_domain_limiter(TimedLimiter(BASE_URL, '2 seconds'))
 
 
-def login():
+def login(username, password):
     data = {
-        'username': <username>,
-        'password': <password>,
+        'username': username,
+        'password': password,
         'keeplogged': '1'
     }
     login_url = 'https://' + BASE_URL + '/login.php'
@@ -45,16 +45,37 @@ def get_id(url):
     return parse_qs(urlparse(url).query)['id']
 
 
-class BrokenStones(object):
-    def on_task_filter(self, task, config):
+# https://stackoverflow.com/a/42865957
+units = {"B": 1, "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12}
+def parse_size(size):
+    number, unit = [string.strip() for string in size.split()]
+    return int(float(number)*units[unit])
+
+
+class BrokenStonesLookup(object):
+    """BrokenStones lookup plugin."""
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'username': {'type': 'string'},
+            'password': {'type': 'string'},
+        },
+        'required': ['username', 'password'],
+        'additionalProperties': False,
+    }
+
+    def on_task_metainfo(self, task, config):
         for entry in task.entries:
-            log.info('Checking ' + entry['url'])
+            log.info('Checking {} ({})'.format(entry['title'], entry['url']))
             r = get_comments(entry)
             if r.url.endswith('login.php'):
-                login()
+                login(config['username'], config['password'])
                 r = get_comments(entry)
                 if r.url.endswith('login.php'):
                     raise plugin.PluginError('Login appeared to succeed but next request failed')
+            if 'log.php' in r.url:
+                entry.reject('torrent removed')
             html = r.content
             soup = BeautifulSoup(html, 'lxml')
             expected_id = get_id(entry['url'])
@@ -63,16 +84,36 @@ class BrokenStones(object):
                 log.debug('Comparing ' + dl_url)
                 if get_id(dl_url) == expected_id:
                     # Found the link we're here for
+
                     if el.find('strong', string='Freeleech!'):
-                        # It's freeleech, download it
-                        entry.accept(remember=True)
+                        log.info('Is freeleech')
+                        entry['freeleech'] = True
                     else:
-                        entry.reject('Not freeleech', remember=True)
-                        break
+                        entry['freeleech'] = False
+
+                    if el.find('strong', string='Neutral Leech!'):
+                        log.info('Is neutral leech')
+                        entry['neutral_leech'] = True
+                    else:
+                        entry['neutral_leech'] = False
+
+                    if el.find('strong', string='Snatched!'):
+                        log.info('Is snatched')
+                        entry['snatched'] = True
+                    else:
+                        entry['snatched'] = False
+
+                    entry['content_size'] = parse_size(el.find_all('td')[1].string)
+                    entry['snatches'] = el.find_all('td')[2].string
+                    entry['seeders'] = el.find_all('td')[3].string
+                    entry['leechers'] = el.find_all('td')[4].string
+                    log.info('Size: {}, snatches: {}, seeders: {}, leechers: {}'.format(
+                             entry['content_size'], entry['snatches'], entry['seeders'], entry['leechers']))
+                    break
             else:
                 log.error('Could not match download link in page')
 
 
 @event('plugin.register')
 def register_plugin():
-    plugin.register(BrokenStones, 'brokenstones', api_ver=2)
+    plugin.register(BrokenStonesLookup, 'brokenstones_lookup', api_ver=2)
