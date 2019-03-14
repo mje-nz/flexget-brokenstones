@@ -13,7 +13,7 @@ tasks:
     brokenstones_lookup:
       username: (username)
       password: (password)
-    if:
+    if2:
       - 'not freeleech': reject
       - 'content_size >= 5000000000': reject
       - 'freeleech and content_size < 5000000000': accept
