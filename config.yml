@@ -5,17 +5,18 @@ schedules:
     interval:
       minutes: 30
 
+variables: secrets.yml
 tasks:
   check_brokenstones_freeleech:
     domain_delay:
       brokenstones.club: 10 seconds
     rss:
-      url: (brokenstones RSS URL)
+      url: '{? brokenstones.rss_url ?}'
       # Need to keep comments field from RSS for brokenstones_lookup
       other_fields: [comments]
     brokenstones_lookup:
-      username: (username)
-      password: (password)
+      username: '{? brokenstones.username ?}'
+      password: '{? brokenstones.password ?}'
     if2:
       - 'not freeleech': reject
       - 'content_size >= 5000': reject

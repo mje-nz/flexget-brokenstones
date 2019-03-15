@@ -3,3 +3,4 @@
 *.sqlite
 .config-lock
 **/*.pyc
+secrets.yml
