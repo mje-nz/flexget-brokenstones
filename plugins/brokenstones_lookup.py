@@ -74,11 +74,12 @@ class BrokenStonesLookup(object):
 
     # Should really use on_task_metainfo, but this way remember_rejected goes first
     def on_task_filter(self, task, config):
-        for entry in task.entries:
+        entry_count = len(task.entries)
+        for i, entry in enumerate(task.entries):
             if not task.requests.cookies:
                 login(task.requests, config['username'], config['password'])
 
-            log.info('Checking {} ({})'.format(entry['title'], entry['url']))
+            log.info('[{}/{}] Checking {} ({})'.format(i + 1, entry_count, entry['title'], entry['url']))
             r = get_comments(task.requests, entry)
             if r.url.endswith('login.php'):
                 login(task.requests, config['username'], config['password'])
