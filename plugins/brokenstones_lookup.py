@@ -18,13 +18,16 @@ from bs4 import BeautifulSoup
 
 from flexget import plugin
 from flexget.event import event
-from flexget.utils.requests import RequestException
+from flexget.utils.requests import TimedLimiter, RequestException
+from flexget.utils.requests import Session as RequestSession
 
 
 log = logging.getLogger('brokenstones_lookup')
+requests = RequestSession()
+requests.add_domain_limiter(TimedLimiter('brokenstones.club', '10 seconds'))
 
 
-def login(requests, username, password):
+def login(username, password):
     log.info('Logging in to BrokenStones...')
     data = {
         'username': username,
@@ -40,7 +43,7 @@ def login(requests, username, password):
         raise plugin.PluginError('Error logging in to BrokenStones: {}'.format(e))
 
 
-def get_comments(requests, entry):
+def get_comments(entry):
     try:
         return requests.get(entry['comments'])
     except RequestException as e:
@@ -76,14 +79,14 @@ class BrokenStonesLookup(object):
     def on_task_filter(self, task, config):
         entry_count = len(task.entries)
         for i, entry in enumerate(task.entries):
-            if not task.requests.cookies:
-                login(task.requests, config['username'], config['password'])
+            if not requests.cookies:
+                login(config['username'], config['password'])
 
             log.info('[{}/{}] Checking {} ({})'.format(i + 1, entry_count, entry['title'], entry['url']))
-            r = get_comments(task.requests, entry)
+            r = get_comments(entry)
             if r.url.endswith('login.php'):
-                login(task.requests, config['username'], config['password'])
-                r = get_comments(task.requests, entry)
+                login(config['username'], config['password'])
+                r = get_comments(entry)
                 if r.url.endswith('login.php'):
                     raise plugin.PluginError('Login appeared to succeed but next request failed')
             if 'log.php' in r.url:

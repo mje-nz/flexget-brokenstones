@@ -8,8 +8,6 @@ schedules:
 variables: secrets.yml
 tasks:
   check_brokenstones_freeleech:
-    domain_delay:
-      brokenstones.club: 10 seconds
     rss:
       url: '{? brokenstones.rss_url ?}'
       # Need to keep comments field from RSS for brokenstones_lookup
