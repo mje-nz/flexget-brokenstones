@@ -4,7 +4,7 @@ BrokenStones lookup plugin for FlexGet, which looks up items from one of the RSS
 * `freeleech`
 * `neutral_leech`
 * `snatched`
-* `content_size` (in bytes)
+* `content_size` (in MB)
 * `snatches`
 * `seeders`
 * `leechers`

@@ -116,11 +116,12 @@ class BrokenStonesLookup(object):
                     else:
                         entry['snatched'] = False
 
-                    entry['content_size'] = parse_size(el.find_all('td')[1].string)
+                    size_in_bytes = parse_size(el.find_all('td')[1].string)
+                    entry['content_size'] = float(size_in_bytes)/10**6
                     entry['snatches'] = el.find_all('td')[2].string
                     entry['seeders'] = el.find_all('td')[3].string
                     entry['leechers'] = el.find_all('td')[4].string
-                    log.info('Size: {}, snatches: {}, seeders: {}, leechers: {}'.format(
+                    log.info('Size: {} MB, snatches: {}, seeders: {}, leechers: {}'.format(
                              entry['content_size'], entry['snatches'], entry['seeders'], entry['leechers']))
                     break
             else:
