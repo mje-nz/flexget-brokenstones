@@ -59,6 +59,7 @@ def get_id(url):
 units = {"B": 1, "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12}
 def parse_size(size):
     number, unit = [string.strip() for string in size.split()]
+    number = number.replace(',', '')
     return int(float(number)*units[unit])
 
 

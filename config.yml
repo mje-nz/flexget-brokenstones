@@ -29,3 +29,14 @@ tasks:
           - pushover:
               user_key: '{? pushover.user_key ?}'
               url: '{{comments}}'
+      abort:
+        title: 'Flexget task aborted'
+        via:
+          - pushover:
+              user_key: '{? pushover.user_key ?}'
+    qbittorrent:
+      host: bassanio.lan
+      port: 8080
+      username: '{? qbittorrent.username ?}'
+      password: '{? qbittorrent.password ?}'
+      label: flexget
