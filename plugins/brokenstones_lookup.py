@@ -85,6 +85,9 @@ class BrokenStonesLookup(object):
 
             log.info('[{}/{}] Checking {} ({})'.format(i + 1, entry_count, entry['title'], entry['url']))
             r = get_comments(entry)
+            if not r:
+                raise plugin.PluginError('Could not fetch comments page for ' + entry['title']
+                        + ' (' + entry['comments'] + ')')
             if r.url.endswith('login.php'):
                 login(config['username'], config['password'])
                 r = get_comments(entry)
