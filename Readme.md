@@ -24,6 +24,9 @@ docker run -d \
   cpoppema/docker-flexget
 ```
 
+You'll also need to set up `secrets.yml` with appropriate passwords etc for Brokenstones, Pushover and qBittorrent.
+Note that Flexget seems to silently fail if a secret is missing!
+
 If you delete the database you'll have to reset your web UI password:
 
 ```bash
